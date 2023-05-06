@@ -27,50 +27,81 @@ SOFTWARE.
 
 
 class Options {
-    /**
-     * Указывает классу с каким файлом будет производится дальнейшие операции . 
-     * @param {String} iniPathName Полный путь к файлу
-     */
-    static setTargetInin(iniPathName) {
-        Option._filePathName = iniPathName;
-        Option._filePath = "" /*todo*/;
+    constructor(pathName) {
+        this.filePathName = pathName;
+        this.filePath = "" /*todo*/;
     }
 
     /**
-     * Проверяет наличие файла . Если файл был удалён , создаёт новый с настройками по умолчанию .
+     * Создаёт и возвращает объект настроект используя файл .
+     * Так же проверяет наличие файла . Если файл не существует , создаёт новый с настройками по умолчанию .
+     * @param {String} pathName Полный путь к файлу .
      */
-    static scheckIni() {
-
-        let globalScriptsPath = tiled.extensionsPath;
-        let globalTiledPath = globalScriptsPath.slice(0, globalScriptsPath.lastIndexOf("/"));
-        if (!File.exists(globalTiledPath + _filePath/*todo "/storage/layers_depth_helper"*/)) {
-            File.makePath(globalTiledPath + _filePath/*todo "/storage/layers_depth_helper"*/);
+    static load(pathName) {
+        let optionsHandle = new Options(pathName);
+        if (!File.exists(optionsHandle.filePath)) {
+            File.makePath(optionsHandle.filePath);
         }
+        if (!File.exists(this.filePathName)) {
+            let optionsRW = new TextFile(this.filePathName, TextFile.ReadWrite);
+            optionsRW.write(Options._defaultSettings);
+            optionsRW.close();
+        }
+        return optionsHandle;
+    }
 
+    /**
+     * Записать этот объект настроект в файл использованный при его создании .
+     */
+    commit() {
+
+    }
+
+    /**
+     * Устанавливает настройки по умолчанию для файлов создаваемых методом "load" если тот не нашёл искомого файла .
+     * @param {String} plainText Строка которая будет записываться в файл .
+     */
+    static setDefaultSettings(plainText) {
+        Options._defaultSettings = plainText;
     }
 
     /**
      * Вносит изменение в имеющийся сохранённый параметр или при отсутствии создаёт его . 
-     * @param {String} group Имя группы в которой находится параметр
-     * @param {String} name Имя параметра
-     * @param {String} value Что в себе хранит параметр
-     * @param {String} type Тип хранимого значения в параметре
+     * @param {String} group Имя группы в которой находится параметр ("" для глобального параметра вне всякой группы) .
+     * @param {String} type Тип значения которое будет в параметре .
+     * @param {String} name Имя параметра .
+     * @param {String} value Что записать в параметр .
      */
-    static set(group, name, value, type) {
+    set(group, type, name, value) {
 
     }
 
     /**
-     * Получает значение из сохранённого параметра или при его отсутствии возвращает null . 
-     * @param {String} group Имя группы в которой находится параметр
-     * @param {String} name Имя параметра
-     * @param {String} value Что в себе хранит параметр
-     * @param {String} type Тип хранимого значения в параметре
+     * Получает значение из сохранённого параметра или при его отсутствии возвращает null .
+     * @param {String} group Имя группы в которой находится параметр ("" для глобального параметра вне всякой группы) .
+     * @param {String} type Тип хранимого значения в параметре .
+     * @param {String} name Имя параметра .
      */
-    static get(group, name, value, type) {
+    get(group, type, name) {
 
     }
+
 }
-Option._filePathName = "";
-Option._filePath = "";
+
+
+
+
+
+Options.setDefaultSettings(";comment line\ntest_val=\"working\"");
+
+let globalScriptsPath = tiled.extensionsPath;
+let globalTiledPath = globalScriptsPath.slice(0, globalScriptsPath.lastIndexOf("/"));
+
+let testOfOptions = Options.load(globalTiledPath + "storage/layers_depth_helper/options.ini");
+tiled.log("default value - " + testOfOptions.get("", typeof (String), "test_val"));
+testOfOptions.set("", typeof (String), "test_val", "changed");
+tiled.log("changed value - " + testOfOptions.get("", typeof (String), "test_val"));
+testOfOptions.commit();
+
+
 
